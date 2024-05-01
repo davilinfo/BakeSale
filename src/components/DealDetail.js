@@ -1,22 +1,30 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, FlatList } from "react-native";
 import PropTypes from 'prop-types';
 import { priceDisplay } from "../util";
+import ajax from '../Ajax';
 
-class DealItem extends React.Component{
+class DealDetail extends React.Component{
     static propTypes = {
-        deal: PropTypes.object.isRequired,
-        onPress: PropTypes.func.isRequired
+        initialDealData: PropTypes.object.isRequired
     }
-    
-    handlePress =(e)=>{
-        this.props.onPress(this.props.deal.key)
+
+    state = {
+        deal: this.props.initialDealData
+    }
+
+    async componentDidMount(){
+        const fullDeal = await ajax.fetchDealDetail(this.state.deal.key);
+        console.log("deal ", fullDeal);
+        this.setState({
+            deal: fullDeal
+        });
     }
 
     render(){
-        const { deal } = this.props;
+        const { deal } = this.state;
         return (
-            <TouchableOpacity style={styles.deal} onPress={this.handlePress}>
+            <View style={styles.deal}>
                 <Image source={{uri: deal.media}} style={styles.Image}></Image>
                 <View style={styles.info}>
                     <Text style={styles.title}>{deal.title}</Text>   
@@ -25,7 +33,8 @@ class DealItem extends React.Component{
                         <Text style={styles.price}>{priceDisplay(deal.price)}</Text>                        
                     </View>                 
                 </View>
-            </TouchableOpacity>
+                <Text>...</Text>
+            </View>
         )
     }
 }
@@ -33,7 +42,7 @@ class DealItem extends React.Component{
 const styles = StyleSheet.create({
     deal: {
         marginHorizontal: 12,
-        marginTop: 12
+        marginTop: 50
     },
     Image:{
         width: "100%",
@@ -64,4 +73,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default DealItem;
+export default DealDetail;
