@@ -3,25 +3,42 @@ import { View, Text, StyleSheet } from "react-native";
 import ajax from '../Ajax';
 import DealList from './DealList';
 import DealDetail from "./DealDetail";
+import SearchBar from "./SearchBar";
 
 class App extends React.Component{
 
     state = {
         deals: [],
+        dealsFromSearch: [],
         currentDealId: null
     }
 
     async componentDidMount(){
-        const deals = await ajax.fetchInitialsDeals();
-        console.log(deals);
+        const deals = await ajax.fetchInitialsDeals();        
         this.setState((prevState)=>{
             return { deals };
         })
     }
 
+    searchDeals = async (searchTerm) =>{
+        let dealsFromSearch = [];
+
+        if (searchTerm){
+            dealsFromSearch = await ajax.fetchDealsSearchResults(searchTerm);
+            console.log("dealsFromSearch", dealsFromSearch);
+        }
+        this.setState( { dealsFromSearch });
+    }    
+
     setCurrentDealId = (dealId) =>{
         this.setState({
             currentDealId: dealId
+        })
+    }
+
+    unSetCurrentDealId = () =>{
+        this.setState({
+            currentDealId: null
         })
     }
 
@@ -34,10 +51,20 @@ class App extends React.Component{
     render(){
         
         if (this.state.currentDealId){
-            return <DealDetail initialDealData={this.currentDeal()}/>
+            return (
+                <View style={styles.main}>
+                    <DealDetail initialDealData={this.currentDeal()} onBack={this.unSetCurrentDealId}/>
+                </View>
+            )
         }
-        if (this.state.deals.length > 0){
-            return <DealList deals={this.state.deals} onItemPress={this.setCurrentDealId} />
+        const dealsToDisplay = this.state.dealsFromSearch.length > 0 ? this.state.dealsFromSearch : this.state.deals;
+        if (dealsToDisplay.length > 0){
+            return (
+                <View style={styles.main}>
+                    <SearchBar searchDeals={this.searchDeals}/>
+                    <DealList deals={dealsToDisplay} onItemPress={this.setCurrentDealId} />
+                </View>
+            )
         }
 
         return (
@@ -57,6 +84,9 @@ const styles = StyleSheet.create({
     header: {
       fontSize: 40
     },
+    main:{
+        marginTop: 30
+    }
   });
 
 export default App;
