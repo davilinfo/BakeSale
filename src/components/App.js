@@ -1,19 +1,36 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Animated, Easing, Dimensions } from "react-native";
 import ajax from '../Ajax';
 import DealList from './DealList';
 import DealDetail from "./DealDetail";
 import SearchBar from "./SearchBar";
 
 class App extends React.Component{
-
+    titleXPos = new Animated.Value(0);
     state = {
         deals: [],
         dealsFromSearch: [],
         currentDealId: null
     }
 
+    animateTitle = (direction = 1) =>{
+        const width = Dimensions.get('window').width - 150;
+        Animated.timing( this.titleXPos, 
+            {   toValue: direction * (width / 2), 
+                useNativeDriver:false, 
+                duration: 1000,
+                easing: Easing.ease //movement type
+            })
+            .start(({finished})=>{
+                if (finished){
+                    this.animateTitle(-1 * direction);
+                }
+            });
+    }
+
     async componentDidMount(){
+        this.animateTitle();
+        
         const deals = await ajax.fetchInitialsDeals();        
         this.setState((prevState)=>{
             return { deals };
@@ -68,9 +85,9 @@ class App extends React.Component{
         }
 
         return (
-            <View style={styles.container}>
-                <Text style={styles.header}>Bake Sale</Text> 
-            </View>
+            <Animated.View style={[{left: this.titleXPos}, styles.container]}>
+                <Text style={styles.header}>Bakesale</Text> 
+            </Animated.View>
         );
     }
 }
